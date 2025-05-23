@@ -5,16 +5,16 @@ const transport = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'leonardoluisorlandorigo@gmail.com',
-        pass: 'puyklmswlucqbmex',
+        user: 'email de quem vai enviar',
+        pass: 'senha gerado pelo google keys',
     }
 });
 
 transport.sendMail({
-    from: 'Leonardo Rigo <leonardoluisorlandorigo@gmail.com>',
-    to: 'gabrielmarin16159@gmail.com',
+    from: 'Leonardo Rigo <email de quem vai enviar>',
+    to: 'email da pessoa que vai receber',
     subject: 'Email especial para você',
-    html: '<h1>Me responda por favor.</h1><p>Que horas eu vou ali mano?</p>',
+    html: '<h1>Me responda por favor.</h1>',
     text: '?'
 })
 .then(() => console.log('Email enviado com sucesso!'))
