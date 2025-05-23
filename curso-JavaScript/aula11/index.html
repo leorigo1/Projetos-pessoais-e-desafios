@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multado</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<h1>Verifique se você foi multado</h1>
+
+
+Digite aqui a velocidade: <input type="number" name="velocidade" class="vel">
+
+<input type="button" onclick="calcular()" value="Calcular">
+</input>
+
+<div id="res">
+</div>
+
+
+<div id="cagada"></div>
+
+<script>
+
+    function calcular() {
+var velocidade = document.getElementsByClassName('vel') [0]
+var resultado = document.getElementById('res')
+var queixa = document.getElementById('cagada')
+
+var velo = Number(velocidade.value)
+
+resultado.innerHTML = `<p> Sua velocidade atual é de ${velo} Km/h </p>`
+
+if (velo > 80) {
+    queixa.innerHTML = '<p>Você excedeu o limite de velocidade e foi <strong> MULTADO!! </strong></p>'
+}
+else {
+    queixa.innerHTML = '<p>Você está trafegando dentro dos limites da via, Parabéns!!</p>'
+}
+
+
+}
+</script>
+    
+</body>
+</html>

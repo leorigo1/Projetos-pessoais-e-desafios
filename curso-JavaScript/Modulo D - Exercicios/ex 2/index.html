@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idade e Gênero</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section>
+<div class="frame">
+    <h1>Verificador de idade e gênero</h1>
+    <img src="images/normal.jpg" alt="imagem" id="imagem" style="width:150px ;height:150px; border-radius:85px;"> 
+    <p>Digite sua idade:</p> 
+    <input type="number" name="idade" id="idade">
+    <br></br>
+    <p>Escolha seu Gênero:</p>
+    <input type="radio" name="sexo" value="masculino" id="masculino">
+    <label for="masculino">Masculino</label>
+    <input type="radio" name="sexo" value="feminino" id="feminino">
+    <label for="feminino">Feminino</label>
+    <br></br>
+    <button onclick="verificar()">Verificar</button>
+    <br></br>
+    <div id="resultado">Você é bi e tem 66 anos!</div>
+</div>
+</section>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+body {
+margin: 0;
+text-align: center;
+align-items: center;
+height: 100vh;
+display: grid;
+ justify-content: center;
+ background-color: gray;
+ color: white;
+}
+
+.frame {
+    transform: translateY(-70%);
+    background-color: rgba(174, 174, 174, 0.565);
+    padding: 70px;
+    border-radius: 45px;
+    height: 200px;
+    align-items: center;
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Conversor</title>
+</head>
+<body>
+
+    <h1>Conversor de moedas</h1>
+
+<div class="frame">
+
+<label>Digite o valor em R$: </label> <br>
+<input type="number" name="valor" id="valor"> <br>
+<label> </label>
+
+<p>Escolha a moeda que deseja converter:</p>
+
+<input type="radio" name="option" id="dolar" value="1">
+<label>Dolar</label>
+
+<input type="radio" name="option" id="euro" value="2">
+<label>Euro</label>
+
+<input type="radio" name="option" id="libra" value="3">
+<label>Libra</label>
+
+<br> <br>
+
+<input type="button" value="Converter" onclick="convert()">
+
+<br> <br> <br> <br> <div id="resultado" class="resultade"></div>
+
+</div>
+
+
+<script src="main.js"></script>
+
+</body>
+</html>

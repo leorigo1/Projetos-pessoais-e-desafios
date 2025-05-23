@@ -1,0 +1,11 @@
+body { 
+text-align: center;
+    justify-content: center; /* Centraliza na horizontal */
+    align-items: center;     /* Centraliza na vertical */
+    margin: 0;
+    background-color: palevioletred;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }

@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Oswald:wght@200..700&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
+body{
+font-family: "Lato", sans-serif;
+font-weight: 500;
+font-style: normal;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+   border: 0;
+}
+
+.frame {
+    transform: translateY(+20%);
+    background-color: #0909097a;
+    width: 400px;
+    height: auto;
+    border-radius: 25px;
+    padding: 50px;
+    color: white;
+}
+
+
+select#resultados {
+    width: 150px;
+}

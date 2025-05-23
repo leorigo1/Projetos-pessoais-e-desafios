@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multadouro</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Descubra se você foi multado!</h1>
+
+Digite a sua velocidade aqui <input type="number" name="txtvelo" id="txtvelo">
+<input type="button" value="Verificar" onclick="calcular()">
+<div id="res"> </div>
+
+<div id="multado"> </div>
+
+<script>
+    function calcular () {
+  var valors = document.querySelector('input#txtvelo') 
+  var res = document.querySelector('div#res')
+var multado = document.querySelector('div#multado')
+var valor = Number(valors.value)
+res.innerHTML = `Sua velocidade foi ${valor}`
+
+if (valor > 80) {
+multado.innerHTML = `Você acaba de ser multado por excesso de <strong> VELOCIDADE! </strong>`
+}
+ else {
+ multado.innerHTML = `Continue dirigindo dentro da lei, Parabéns`
+}
+}
+
+</script>
+
+</body>
+</html>
