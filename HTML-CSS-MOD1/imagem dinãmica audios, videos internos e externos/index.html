@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagens dinâmicas</title>
+</head>
+<body>
+    
+<h1>Imagem dinâmica</h1>
+<p>tentando fazer uma imagem dinamica no html</p>
+
+
+<picture>  <!--escrever o picture para ativar as imagens dinâmicas -->
+
+ <source media="(max-width: 600px)" srcset="imagens/imagem-p.jpg" type="image/jpg">  <!--sempre q a janela for menor que 600px, adicionar a imagem pequena -->
+<source media="(max-width: 1050px)" srcset="imagens/imagem-m.png" type="image/png"> <!--sempre q a janela for menor que 1050px, adicionar a imagem media -->
+<img src="imagens/gato-engraçado Grande.jpg" alt="Imagem-grande">            <!--sempre a imagem maior por ultimo, pois ela é a prioridade -->
+
+</picture>
+
+<p>
+<audio preload="metadata" autoplay controls>
+<source src="audio/Kallidade.mp3" type="audio/mpeg">     <!--para adicionar audios/musicas/podcasts internos -->
+</audio>
+</p>
+
+
+<p>
+    <video width="absolute" src="video/videoplayback.webm" poster="imagens/imagem-30s.jpg" autoplay controls type="video/webm">  <!--para adicionar videos de hospedagem interna -->
+    </video>
+</p>
+
+<p>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/519Zp74Zgnk?si=tR2idxvaccYU3Z3L" title="YouTube video player" 
+    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>   <!--para adicionar videos do Youtube -->
+
+</p>
+
+</body>
+</html>
