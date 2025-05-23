@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+ 
+body {
+  font-family: "Sansation", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  display: flex;
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: center;     /* Centraliza verticalmente */
+  height: 100vh;           /* Altura total da tela */
+  margin: 0;
+  background-image: url(images/3607424.jpg); 
+  background-size: cover;               /* Faz a imagem cobrir toda a tela */
+  background-position: center;          /* Centraliza a imagem */
+  background-repeat: no-repeat;         /* Evita repetição da imagem */
+}
+
+.login {
+  width: 650px;
+  height: 650px; /* Mesma altura e largura = forma quadrada */
+  background-color: rgba(165, 165, 165, 0.1);
+  color: var(--grey);
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* Centraliza o conteúdo horizontalmente */
+  border-radius: 25px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+:root {
+  --white: #FFF;
+  --grey: #C4C4C4;
+  --medium-grey: #A7A7A7;
+  }
+
+.titule {
+font-size: 1.5em;
+text-align: center;
+margin-bottom: 30px;
+}
+
+.login__label {
+  text-align: left;
+  width: 90%;
+  display: block;
+  margin-bottom: 20px;
+  margin-right: -95px;
+}
+
+.login__label span {
+position: absolute;
+font-size: 0.9em;
+font-weight:bold;
+color: black;
+cursor: text;
+margin: 20px;
+transition: all 200ms ease;
+}
+
+.input {
+  width: 80%;
+text-align: left;
+background-color: whitesmoke;
+border: 2px solid rgba(0, 0, 0 ,0);
+border-radius: 5px;
+outline: none;
+font-size: 0.9em;
+padding: 25px 10px 10px;
+font-weight: 600;
+}
+
+input:focus {
+background-color: var(--white);  /* quando seleciona o imput, ele muda de cor */
+border: 2px solid black;
+}
+
+.login__label .span-active  {
+  font-size: 0.8em;
+  margin: 8px 10px;
+}
+
+
+.login__button {
+  width: 60px;
+  height: 60px;
+  align-items: center;
+  border: none;
+  background-color: #3E7ABD;
+  border-radius: 35%;
+  cursor: pointer;
+  margin-bottom: 60px;
+  justify-content: center;
+}
+
+.login__button svg {
+  fill: white;
+  width: 28px;
+}
+
+.login__button:disabled { 
+cursor: auto;
+background-color: var(--grey);
+border: 2px solid var(--medium-grey);
+}
+
+
+.inputnascimento {
+  width: 80%;
+text-align: left;
+background-color: whitesmoke;
+border: 2px solid rgba(0, 0, 0 ,0);
+border-radius: 5px;
+outline: none;
+font-size: 0.9em;
+padding: 25px 10px 10px;
+font-weight: 600;
+}
