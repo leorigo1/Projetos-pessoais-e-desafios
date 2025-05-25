@@ -1,0 +1,2 @@
+Inicialmente é instalado o discord.py usando o comando: pi install discord.py
+toda vez que dar RUN nele, ele já atualiza o código e passa a funcionar automaticamente exibindo no console o texto de inicialização.
