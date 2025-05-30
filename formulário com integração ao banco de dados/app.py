@@ -26,7 +26,7 @@ def register():
     cursor.execute(query, values)
     db.commit()
 
-    return render_template('sucesso.html', email=email)
+    return render_template('sucesso.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

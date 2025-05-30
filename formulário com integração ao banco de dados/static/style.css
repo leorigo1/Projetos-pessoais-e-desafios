@@ -4,7 +4,6 @@
   font-family: "Lato", sans-serif;
   font-weight: 400;
   font-style: normal;
-
 }
 
 body {
@@ -27,7 +26,7 @@ body {
 
 
 .titulo-e-frame {
-transform: translateX(+140%);
+margin: 0 auto;
 }
 
 .botom {
@@ -38,5 +37,5 @@ transform: translateX(+140%);
 
 .imagem {
     width: 350px;
-    height: 101.8ch;
+    height: 98.2ch;
 }

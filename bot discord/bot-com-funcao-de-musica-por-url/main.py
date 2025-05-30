@@ -12,11 +12,21 @@ intents.message_content = True
 async def on_ready():
  print("Bot inicializado com sucesso!")
 
+
+#quando o usuário entrar do servidor
 @bot.event
 async def on_member_join(member):
  channel = discord.utils.get(member.guild.text_channels, name="boas-vindas")
  if channel:
   await channel.send(f"👋 Olá {member.mention}, seja bem-vindo(a) ao servidor!")
+
+
+#quando o usuário sair do servidor
+@bot.event
+async def on_member_leave(member):
+ channel = discord.utils.get(member.guild.text_channels, name ="geral")
+ if channel:
+  await channel.send(f" O {member.mention} é broxa e acaba de sair do servidor!")
 
 
 #quando o usuário digitar .ola, o bot irá responde-lo
@@ -55,7 +65,6 @@ async def play(ctx, url):
                       '-protocol_whitelist file,http,https,tcp,tls',
     'options': '-vn'
 }
-  
 
   with youtube_dl.YoutubeDL(ydl_opts) as ydl:
    info = ydl.extract_info(url, download=False)
@@ -63,7 +72,7 @@ async def play(ctx, url):
 
   source = await discord.FFmpegOpusAudio.from_probe(
     audio_url,
-    executable="C:/ffmpeg/bin/ffmpeg.exe",  # Use o caminho exato do seu sistema
+    executable="C:/ffmpeg/bin/ffmpeg.exe",  # Usar o caminho exato do seu sistema
     **ffmpeg_opts
 )
   ctx.voice_client.stop()
