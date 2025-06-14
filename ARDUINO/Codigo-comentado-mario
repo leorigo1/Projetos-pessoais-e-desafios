@@ -1,0 +1,426 @@
+#include <LiquidCrystal.h> // Inclui a biblioteca para o controle do LCD
+
+// Definições de pinos
+#define PIN_BUTTON 2    // Pino para o botão de pulo (interrupção 0)
+#define PIN_AUTOPLAY 1  // Pino para o modo autoplay/debug (saída)
+#define PIN_READWRITE 10 // Pino RW do LCD (definido como LOW)
+#define PIN_CONTRAST 12  // Pino de contraste do LCD (definido como LOW)
+
+// Definições de caracteres personalizados (sprites)
+#define SPRITE_RUN1 1           // Personagem correndo (pose 1)
+#define SPRITE_RUN2 2           // Personagem correndo (pose 2)
+#define SPRITE_JUMP 3           // Personagem pulando (corpo principal)
+#define SPRITE_JUMP_UPPER '.'   // Caractere para a cabeça do pulo (usa um caractere padrão do LCD)
+#define SPRITE_JUMP_LOWER 4     // Parte inferior do pulo
+#define SPRITE_TERRAIN_EMPTY ' ' // Caractere para espaço vazio no terreno
+#define SPRITE_TERRAIN_SOLID 5  // Bloco de terreno sólido
+#define SPRITE_TERRAIN_SOLID_RIGHT 6 // Parte direita de um bloco sólido (para transição)
+#define SPRITE_TERRAIN_SOLID_LEFT 7  // Parte esquerda de um bloco sólido (para transição)
+
+#define HERO_HORIZONTAL_POSITION 1 // Posição horizontal do herói na tela (coluna)
+
+#define TERRAIN_WIDTH 16    // Largura do terreno (equivalente às colunas do LCD)
+#define TERRAIN_EMPTY 0     // Tipo de terreno: vazio
+#define TERRAIN_LOWER_BLOCK 1 // Tipo de terreno: bloco na linha inferior
+#define TERRAIN_UPPER_BLOCK 2 // Tipo de terreno: bloco na linha superior
+
+// Definições de estados de posição e animação do herói
+#define HERO_POSITION_OFF 0         // Herói invisível
+#define HERO_POSITION_RUN_LOWER_1 1 // Herói correndo na linha inferior (pose 1)
+#define HERO_POSITION_RUN_LOWER_2 2 // Herói correndo na linha inferior (pose 2)
+
+#define HERO_POSITION_JUMP_1 3      // Início do pulo
+#define HERO_POSITION_JUMP_2 4      // Meio do pulo (subindo)
+#define HERO_POSITION_JUMP_3 5      // Pulando na linha superior
+#define HERO_POSITION_JUMP_4 6      // Pulando na linha superior
+#define HERO_POSITION_JUMP_5 7      // Pulando na linha superior
+#define HERO_POSITION_JUMP_6 8      // Pulando na linha superior
+#define HERO_POSITION_JUMP_7 9      // Meio do pulo (descendo)
+#define HERO_POSITION_JUMP_8 10     // Quase pousando
+
+#define HERO_POSITION_RUN_UPPER_1 11 // Herói correndo na linha superior (pose 1)
+#define HERO_POSITION_RUN_UPPER_2 12 // Herói correndo na linha superior (pose 2)
+
+
+// Código da música do Mario
+#define NOTE_C4  262 // Frequências das notas musicais
+#define NOTE_E4  330
+#define NOTE_G4  392
+#define NOTE_G5  784
+#define NOTE_E5  659
+#define NOTE_A4  440
+#define NOTE_AS4 466 // A sustenido
+#define NOTE_B4  494
+#define NOTE_C5  523
+
+int buzzer = 8; // Pino do buzzer
+
+// Array com as notas da melodia do Mario
+int melody[] = {
+  NOTE_E5, NOTE_E5, 0, NOTE_E5, // '0' representa uma pausa (noTone)
+  0, NOTE_C5, NOTE_E5, 0,
+  NOTE_G5, 0, 0,  0,
+  NOTE_G4, 0, 0, 0,
+
+  NOTE_C5, 0, 0, NOTE_G4,
+  0, 0, NOTE_E4, 0,
+  0, NOTE_A4, 0, NOTE_B4,
+  0, NOTE_AS4, NOTE_A4, 0
+};
+
+// Array com a duração de cada nota/pausa (em milissegundos)
+int noteDurations[] = {
+  150, 150, 150, 150,
+  150, 150, 150, 150,
+  150, 150, 150, 150,
+  150, 150, 150, 150,
+
+  150, 150, 150, 150,
+  150, 150, 150, 150,
+  150, 150, 150, 150,
+  150, 150, 150, 150
+};
+
+int currentNote = 0; // Índice da nota atual na melodia
+unsigned long previousMillis = 0; // Variável para controle de tempo da música (não-bloqueante)
+
+
+// Fim do Código da música do Mario
+
+// Inicializa o objeto LiquidCrystal com os pinos: (RS, EN, D4, D5, D6, D7)
+LiquidCrystal lcd(11, 9, 6, 5, 4, 3);
+static char terrainUpper[TERRAIN_WIDTH + 1]; // Array para a linha superior do terreno
+static char terrainLower[TERRAIN_WIDTH + 1]; // Array para a linha inferior do terreno
+static bool buttonPushed = false; // Flag para detectar o pressionamento do botão
+
+// Função para inicializar os gráficos personalizados no LCD
+void initializeGraphics(){
+  static byte graphics[] = {
+    // Sprite: Run position 1 (SPRITE_RUN1)
+    B01100, // Topo
+    B01100, // Cabeça
+    B00000, // Pescoço
+    B01110, // Corpo
+    B11100, // Braços
+    B01100, // Cinto
+    B11010, // Pernas (abertas)
+    B10011, // Pés
+
+    // Sprite: Run position 2 (SPRITE_RUN2)
+    B01100, // Topo
+    B01100, // Cabeça
+    B00000, // Pescoço
+    B01100, // Corpo
+    B01100, // Braços
+    B01100, // Cinto
+    B01100, // Pernas (juntas)
+    B01110, // Pés
+
+    // Sprite: Jump (SPRITE_JUMP) - Corpo para pulo na linha superior
+    B01100,
+    B01100,
+    B00000,
+    B11110,
+    B01101,
+    B11111,
+    B10000,
+    B00000,
+
+    // Sprite: Jump lower (SPRITE_JUMP_LOWER) - Parte inferior do corpo para pulo
+    B11110,
+    B01101,
+    B11111,
+    B10000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+
+    // Sprite: Ground (SPRITE_TERRAIN_SOLID)
+    B11111, // Bloco sólido
+    B11111,
+    B11111,
+    B11111,
+    B11111,
+    B11111,
+    B11111,
+    B11111,
+
+    // Sprite: Ground right (SPRITE_TERRAIN_SOLID_RIGHT) - Para transição do terreno
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+
+    // Sprite: Ground left (SPRITE_TERRAIN_SOLID_LEFT) - Para transição do terreno
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+  };
+  int i;
+  // Carrega os caracteres personalizados no CGRAM do LCD
+  // Ignora o caractere 0 para usar lcd.print() diretamente com caracteres ASCII
+  for (i = 0; i < 7; ++i) {
+    lcd.createChar(i + 1, &graphics[i * 8]);
+  }
+  // Inicializa o terreno como vazio
+  for (i = 0; i < TERRAIN_WIDTH; ++i) {
+    terrainUpper[i] = SPRITE_TERRAIN_EMPTY;
+    terrainLower[i] = SPRITE_TERRAIN_EMPTY;
+  }
+}
+
+// Desliza o terreno para a esquerda em incrementos de meio caractere
+void advanceTerrain(char* terrain, byte newTerrain){
+  for (int i = 0; i < TERRAIN_WIDTH; ++i) {
+    char current = terrain[i]; // Caractere atual
+    // Próximo caractere, ou o novo terreno se for a última coluna
+    char next = (i == TERRAIN_WIDTH-1) ? newTerrain : terrain[i+1];
+    switch (current){
+      case SPRITE_TERRAIN_EMPTY: // Se o atual é vazio
+        // Se o próximo é sólido, mostra a parte direita do sólido para transição
+        terrain[i] = (next == SPRITE_TERRAIN_SOLID) ? SPRITE_TERRAIN_SOLID_RIGHT : SPRITE_TERRAIN_EMPTY;
+        break;
+      case SPRITE_TERRAIN_SOLID: // Se o atual é sólido
+        // Se o próximo é vazio, mostra a parte esquerda do sólido para transição
+        terrain[i] = (next == SPRITE_TERRAIN_EMPTY) ? SPRITE_TERRAIN_SOLID_LEFT : SPRITE_TERRAIN_SOLID;
+        break;
+      case SPRITE_TERRAIN_SOLID_RIGHT: // Se o atual é a parte direita de um sólido
+        terrain[i] = SPRITE_TERRAIN_SOLID; // Torna-o sólido completo
+        break;
+      case SPRITE_TERRAIN_SOLID_LEFT: // Se o atual é a parte esquerda de um sólido
+        terrain[i] = SPRITE_TERRAIN_EMPTY; // Torna-o vazio
+        break;
+    }
+  }
+}
+
+// Desenha o herói na tela e verifica colisões
+bool drawHero(byte position, char* terrainUpper, char* terrainLower, unsigned int score) {
+  bool collide = false; // Flag de colisão
+  // Salva os caracteres originais da posição do herói no terreno
+  char upperSave = terrainUpper[HERO_HORIZONTAL_POSITION];
+  char lowerSave = terrainLower[HERO_HORIZONTAL_POSITION];
+  byte upper, lower; // Caracteres para a parte superior e inferior do herói
+
+  // Define os sprites do herói com base na sua posição/estado de animação
+  switch (position) {
+    case HERO_POSITION_OFF: // Herói invisível
+      upper = lower = SPRITE_TERRAIN_EMPTY;
+      break;
+    case HERO_POSITION_RUN_LOWER_1: // Correndo na linha de baixo (pose 1)
+      upper = SPRITE_TERRAIN_EMPTY;
+      lower = SPRITE_RUN1;
+      break;
+    case HERO_POSITION_RUN_LOWER_2: // Correndo na linha de baixo (pose 2)
+      upper = SPRITE_TERRAIN_EMPTY;
+      lower = SPRITE_RUN2;
+      break;
+    case HERO_POSITION_JUMP_1: // Início do pulo
+    case HERO_POSITION_JUMP_8: // Fim do pulo
+      upper = SPRITE_TERRAIN_EMPTY;
+      lower = SPRITE_JUMP;
+      break;
+    case HERO_POSITION_JUMP_2: // Subindo no pulo
+    case HERO_POSITION_JUMP_7: // Descendo no pulo
+      upper = SPRITE_JUMP_UPPER;
+      lower = SPRITE_JUMP_LOWER;
+      break;
+    case HERO_POSITION_JUMP_3: // Pulando na linha de cima
+    case HERO_POSITION_JUMP_4:
+    case HERO_POSITION_JUMP_5:
+    case HERO_POSITION_JUMP_6:
+      upper = SPRITE_JUMP;
+      lower = SPRITE_TERRAIN_EMPTY;
+      break;
+    case HERO_POSITION_RUN_UPPER_1: // Correndo na linha de cima (pose 1)
+      upper = SPRITE_RUN1;
+      lower = SPRITE_TERRAIN_EMPTY;
+      break;
+    case HERO_POSITION_RUN_UPPER_2: // Correndo na linha de cima (pose 2)
+      upper = SPRITE_RUN2;
+      lower = SPRITE_TERRAIN_EMPTY;
+      break;
+  }
+
+  // Verifica colisão na linha superior
+  if (upper != ' ') { // Se a parte superior do herói não é vazia
+    // Se a posição do terreno superior já não era vazia, houve colisão
+    collide = (upperSave == SPRITE_TERRAIN_EMPTY) ? false : true;
+    terrainUpper[HERO_HORIZONTAL_POSITION] = upper; // Desenha o sprite do herói
+  }
+  // Verifica colisão na linha inferior
+  if (lower != ' ') { // Se a parte inferior do herói não é vazia
+    // Se a posição do terreno inferior já não era vazia, houve colisão
+    collide |= (lowerSave == SPRITE_TERRAIN_EMPTY) ? false : true; // Usa OR lógico para manter a colisão se já detectada
+    terrainLower[HERO_HORIZONTAL_POSITION] = lower; // Desenha o sprite do herói
+  }
+
+  // Calcula quantos dígitos a pontuação tem para posicioná-la corretamente
+  byte digits = (score > 9999) ? 5 : (score > 999) ? 4 : (score > 99) ? 3 : (score > 9) ? 2 : 1;
+
+  // Prepara as strings do terreno para impressão no LCD
+  terrainUpper[TERRAIN_WIDTH] = '\0'; // Adiciona terminador nulo para lcd.print()
+  terrainLower[TERRAIN_WIDTH] = '\0';
+
+  // Salva o caractere na posição da pontuação para evitar sobrescrever ao imprimir o score
+  char temp = terrainUpper[16-digits];
+  terrainUpper[16-digits] = '\0'; // Temporariamente termina a string antes da pontuação
+
+  lcd.setCursor(0,0); // Posiciona o cursor na primeira linha
+  lcd.print(terrainUpper); // Imprime a parte superior do terreno
+  terrainUpper[16-digits] = temp; // Restaura o caractere original
+
+  lcd.setCursor(0,1); // Posiciona o cursor na segunda linha
+  lcd.print(terrainLower); // Imprime a parte inferior do terreno
+
+  lcd.setCursor(16 - digits,0); // Posiciona o cursor para imprimir a pontuação
+  lcd.print(score); // Imprime a pontuação
+
+  // Restaura os caracteres originais do terreno na posição do herói após o desenho
+  terrainUpper[HERO_HORIZONTAL_POSITION] = upperSave;
+  terrainLower[HERO_HORIZONTAL_POSITION] = lowerSave;
+  return collide; // Retorna se houve colisão
+}
+
+// Função de interrupção para o botão de pulo
+void buttonPush() {
+  buttonPushed = true; // Define a flag como verdadeira quando o botão é pressionado
+}
+
+void setup(){
+  // Configuração dos pinos do LCD (RW e Contraste)
+  pinMode(PIN_READWRITE, OUTPUT);
+  digitalWrite(PIN_READWRITE, LOW); // Modo de escrita
+  pinMode(PIN_CONTRAST, OUTPUT);
+  digitalWrite(PIN_CONTRAST, LOW); // Contraste no mínimo (pode ser ajustado via potenciômetro ou resistor)
+
+  // Configuração do pino do botão
+  pinMode(PIN_BUTTON, INPUT);
+  digitalWrite(PIN_BUTTON, HIGH); // Ativa o pull-up interno para o botão
+
+  // Configuração do pino de autoplay (para debug ou demonstração)
+  pinMode(PIN_AUTOPLAY, OUTPUT);
+  digitalWrite(PIN_AUTOPLAY, HIGH); // Inicia como HIGH (desativado/pronto)
+
+  // Atacha a função buttonPush à interrupção 0 (pino digital 2) na borda de descida (quando o botão é pressionado)
+  attachInterrupt(0/*PIN_BUTTON*/, buttonPush, FALLING);
+
+  initializeGraphics(); // Inicializa os caracteres personalizados do LCD
+
+  lcd.begin(16, 2); // Inicializa o LCD com 16 colunas e 2 linhas
+
+  pinMode(buzzer, OUTPUT); // Configura o pino do buzzer como saída
+}
+
+void loop(){
+  // Lógica da música do Mario em loop, executada de forma não-bloqueante
+  unsigned long currentMillis = millis(); // Tempo atual
+
+  // Verifica se o tempo para a próxima nota já passou
+  if (currentMillis - previousMillis >= noteDurations[currentNote]) {
+    previousMillis = currentMillis; // Atualiza o tempo da última nota
+
+    if (melody[currentNote] == 0) {
+      noTone(buzzer);  // Se a nota é 0, faz uma pausa (desliga o som)
+    } else {
+      tone(buzzer, melody[currentNote]); // Toca a nota no buzzer
+    }
+
+    currentNote++; // Avança para a próxima nota
+    // Se todas as notas foram tocadas, reinicia a música
+    if (currentNote >= sizeof(melody)/sizeof(int)) {
+      currentNote = 0;
+    }
+  }
+  // Fim do código da música
+
+
+  static byte heroPos = HERO_POSITION_RUN_LOWER_1; // Posição atual do herói
+  static byte newTerrainType = TERRAIN_EMPTY;      // Tipo do próximo terreno a ser gerado
+  static byte newTerrainDuration = 1;              // Duração (em quadros) do próximo terreno
+  static bool playing = false;                     // Flag que indica se o jogo está em andamento
+  static bool blink = false;                       // Flag para piscar a mensagem "Press Start"
+  static unsigned int distance = 0;                // Pontuação (distância percorrida)
+
+  // Lógica da tela de início (antes do jogo começar)
+  if (!playing) {
+    // Desenha o herói piscando ou invisível
+    drawHero((blink) ? HERO_POSITION_OFF : heroPos, terrainUpper, terrainLower, distance >> 3);
+    if (blink) {
+      lcd.setCursor(0,0);
+      lcd.print("Press Start"); // Mensagem para iniciar o jogo
+    }
+    delay(250); // Pequeno atraso para o piscar
+    blink = !blink; // Inverte o estado de piscar
+    // Se o botão foi pressionado, inicializa o jogo
+    if (buttonPushed) {
+      initializeGraphics(); // Reinicializa os gráficos e terreno
+      heroPos = HERO_POSITION_RUN_LOWER_1; // Reseta a posição do herói
+      playing = true; // Inicia o jogo
+      buttonPushed = false; // Reseta a flag do botão
+      distance = 0; // Reseta a pontuação
+    }
+    return; // Sai do loop para esperar o início do jogo
+  }
+
+  // Lógica principal do jogo (se 'playing' for true)
+  // Desloca o terreno para a esquerda
+  advanceTerrain(terrainLower, newTerrainType == TERRAIN_LOWER_BLOCK ? SPRITE_TERRAIN_SOLID : SPRITE_TERRAIN_EMPTY);
+  advanceTerrain(terrainUpper, newTerrainType == TERRAIN_UPPER_BLOCK ? SPRITE_TERRAIN_SOLID : SPRITE_TERRAIN_EMPTY);
+
+  // Lógica para gerar novos blocos de terreno na direita
+  if (--newTerrainDuration == 0) { // Se a duração do terreno atual terminou
+    if (newTerrainType == TERRAIN_EMPTY) { // Se o terreno anterior era vazio
+      // Gera um novo tipo de terreno (bloco superior ou inferior) aleatoriamente
+      newTerrainType = (random(3) == 0) ? TERRAIN_UPPER_BLOCK : TERRAIN_LOWER_BLOCK;
+      newTerrainDuration = 2 + random(10); // Define uma nova duração aleatória para o bloco
+    } else { // Se o terreno anterior era um bloco
+      newTerrainType = TERRAIN_EMPTY; // Gera um espaço vazio
+      newTerrainDuration = 10 + random(10); // Define uma duração maior para o espaço vazio
+    }
+  }
+
+  // Lógica de pulo do herói (ativada pelo botão)
+  if (buttonPushed) {
+    // Se o herói está correndo na linha de baixo, inicia o pulo
+    if (heroPos <= HERO_POSITION_RUN_LOWER_2) heroPos = HERO_POSITION_JUMP_1;
+    buttonPushed = false; // Reseta a flag do botão
+  }
+
+  // Desenha o herói e verifica colisão
+  if (drawHero(heroPos, terrainUpper, terrainLower, distance >> 3)) {
+    playing = false; // Se houve colisão, o jogo termina
+  } else {
+    // Lógica de animação e movimento do herói (se não houve colisão)
+    if (heroPos == HERO_POSITION_RUN_LOWER_2 || heroPos == HERO_POSITION_JUMP_8) {
+      // Se estava na pose de corrida 2 ou terminando o pulo, volta para corrida 1
+      heroPos = HERO_POSITION_RUN_LOWER_1;
+    } else if ((heroPos >= HERO_POSITION_JUMP_3 && heroPos <= HERO_POSITION_JUMP_5) && terrainLower[HERO_HORIZONTAL_POSITION] != SPRITE_TERRAIN_EMPTY) {
+      // Se estava pulando na linha de cima e há um bloco embaixo, pousa na linha de cima
+      heroPos = HERO_POSITION_RUN_UPPER_1;
+    } else if (heroPos >= HERO_POSITION_RUN_UPPER_1 && terrainLower[HERO_HORIZONTAL_POSITION] == SPRITE_TERRAIN_EMPTY) {
+      // Se estava correndo na linha de cima e não há bloco embaixo, começa a cair
+      heroPos = HERO_POSITION_JUMP_5;
+    } else if (heroPos == HERO_POSITION_RUN_UPPER_2) {
+      // Se estava na pose de corrida 2 na linha de cima, volta para corrida 1 na linha de cima
+      heroPos = HERO_POSITION_RUN_UPPER_1;
+    } else {
+      ++heroPos; // Avança para a próxima pose de animação/pulo
+    }
+    ++distance; // Incrementa a pontuação
+
+    // Controle do pino de autoplay/debug (HIGH se o terreno à frente estiver vazio para pular, LOW caso contrário)
+    digitalWrite(PIN_AUTOPLAY, terrainLower[HERO_HORIZONTAL_POSITION + 2] == SPRITE_TERRAIN_EMPTY ? HIGH : LOW);
+  }
+  delay(50); // Pequeno atraso para controlar a velocidade do jogo
+}
