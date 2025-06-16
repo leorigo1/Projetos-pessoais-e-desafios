@@ -89,4 +89,5 @@ async def stop(ctx):
   else:
     await ctx.send("O bot não está conectado a nenhum canal de voz.")
 
+
 bot.run(token-do-bot)
